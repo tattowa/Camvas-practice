@@ -81,7 +81,7 @@ let x = canvas.width / 2
 let y = canvas.height / 2
 
 
-let player = new Player(x, y, 30, "blue")
+let player = new Player(x, y, 15, "white")
 
 
 let projectiles = []
@@ -90,7 +90,7 @@ let enemies = []
 
 function spawnEnemies() {
    setInterval(() => {
-      let radius = 30;
+      let radius = Math.random() * (30 - 4) + 4;
 
       let E_x
       let E_y
@@ -104,11 +104,11 @@ function spawnEnemies() {
          E_y = Math.random() < 0.5 ?
             -30 : 30 + canvas.height;
       }
-      let color = "black"
+      let color = "green"
       let angle = Math.atan2(E_y - y, E_x - x)
       enemies.push(new Enemy(E_x, E_y, radius, color, {
-         x: - Math.cos(angle),
-         y: - Math.sin(angle)
+         x: -Math.cos(angle),
+         y: -Math.sin(angle)
       }))
    }, 1000)
 
@@ -118,7 +118,8 @@ let animationId
 
 function animate() {
    animationId = requestAnimationFrame(animate)
-   c.clearRect(0, 0, x * 2, y * 2)
+   c.fillStyle = "rgba(0,0,0,0.1)"
+   c.fillRect(0, 0, x * 2, y * 2)
    player.draw()
 
    projectiles.forEach((projectile, index) => {
@@ -131,7 +132,7 @@ function animate() {
          projectile.y - projectile.radiius > canvas.height
       ) {
          setTimeout(() => {
-            projectiles.splice(index, 1)
+            projectiles.splice(index, 1);
          })
       }
    })
@@ -148,7 +149,7 @@ function animate() {
          let dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
          if (dist - enemy.radius - projectile.radius < 1) {
             setTimeout(() => {
-               enemies.splice(index, 1)
+               enemies.splice(index, 1);
                projectiles.splice(index, 1)
 
             }, 0)
