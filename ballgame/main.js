@@ -15,6 +15,8 @@ canvas_resize();
 
 let c = canvas.getContext("2d");
 
+let scoreNum = document.querySelector("#scoreNum")
+score = 0
 
 class Player {
    constructor(x, y, radius, color) {
@@ -77,6 +79,38 @@ class Enemy {
    }
 }
 
+let friction = 0.99
+
+class Particle {
+   constructor(x, y, radius, color, velocity) {
+      this.x = x
+      this.y = y
+      this.radius = radius
+      this.color = color
+      this.velocity = velocity
+      this.alpha = 1
+   }
+
+   draw() {
+      c.save()
+      c.globalAlpha = this.alpha
+      c.beginPath();
+      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      c.fillStyle = this.color
+      c.fill();
+      c.restore()
+   }
+
+   updata() {
+      this.draw()
+      this.velocity.x *= friction
+      this.velocity.y *= friction
+      this.x = this.x + this.velocity.x
+      this.y = this.y + this.velocity.y
+      this.alpha -= 0.01
+   }
+}
+
 let x = canvas.width / 2
 let y = canvas.height / 2
 
@@ -86,6 +120,7 @@ let player = new Player(x, y, 15, "white")
 
 let projectiles = []
 let enemies = []
+let particles = []
 
 
 function spawnEnemies() {
@@ -104,7 +139,9 @@ function spawnEnemies() {
          E_y = Math.random() < 0.5 ?
             -30 : 30 + canvas.height;
       }
-      let color = "green"
+      let color = `hsl(${Math.random() * 360},50%,50%)`
+
+
       let angle = Math.atan2(E_y - y, E_x - x)
       enemies.push(new Enemy(E_x, E_y, radius, color, {
          x: -Math.cos(angle),
@@ -121,6 +158,14 @@ function animate() {
    c.fillStyle = "rgba(0,0,0,0.1)"
    c.fillRect(0, 0, x * 2, y * 2)
    player.draw()
+
+   particles.forEach((particle, index) => {
+      particle.updata()
+      if (particle.alpha <= 0) {
+         particles.splice(index, 1);
+
+      }
+   })
 
    projectiles.forEach((projectile, index) => {
       projectile.updata()
@@ -145,14 +190,37 @@ function animate() {
          cancelAnimationFrame(animationId)
       }
 
-      projectiles.forEach((projectile, index) => {
-         let dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
-         if (dist - enemy.radius - projectile.radius < 1) {
-            setTimeout(() => {
-               enemies.splice(index, 1);
-               projectiles.splice(index, 1)
 
-            }, 0)
+      projectiles.forEach((projectile, indexp) => {
+         let dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
+
+         if (dist - enemy.radius - projectile.radius < 1) {
+
+
+            for (let i = 0; i < enemy.radius * 2; i++) {
+               particles.push(new Particle(projectile.x, projectile.y, 3 * Math.random(), enemy.color, {
+                  x: (Math.random() - 0.5) * (Math.random() * 6),
+                  y: (Math.random() - 0.5) * (Math.random() * 6)
+               }))
+
+            };
+
+            if (enemy.radius - 6 > 10) {
+               score += 100;
+               scoreNum.innerHTML = score
+               gsap.to(enemy, {
+                  radius: enemy.radius - 10
+               })
+               projectiles.splice(indexp, 1)
+            } else {
+               score += 150;
+               scoreNum.innerHTML = score
+               setTimeout(() => {
+                  enemies.splice(index, 1);
+                  projectiles.splice(indexp, 1)
+
+               }, 0)
+            }
          }
       })
    })

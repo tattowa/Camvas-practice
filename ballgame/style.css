@@ -2,3 +2,11 @@ body {
    margin: 0px;
 
 }
+
+.score {
+   position: absolute;
+   color: white;
+   top: 5px;
+   left: 5px;
+   user-select: none;
+}
