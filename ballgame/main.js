@@ -17,6 +17,10 @@ let c = canvas.getContext("2d");
 
 let scoreNum = document.querySelector("#scoreNum")
 score = 0
+let restart = document.querySelector("#res")
+let pop = document.querySelector("#pop")
+
+let scoreRep = document.querySelector(".scoreRep")
 
 class Player {
    constructor(x, y, radius, color) {
@@ -116,39 +120,53 @@ let y = canvas.height / 2
 
 
 let player = new Player(x, y, 15, "white")
-
-
 let projectiles = []
 let enemies = []
 let particles = []
 
+function init() {
+   player = new Player(x, y, 15, "white")
+   projectiles = []
+   enemies = []
+   particles = []
+}
+
 
 function spawnEnemies() {
-   setInterval(() => {
-      let radius = Math.random() * (30 - 4) + 4;
+   let radius = Math.random() * (30 - 4) + 4;
+   let E_x
+   let E_y
 
-      let E_x
-      let E_y
-
-      if (Math.random() < 0.5) {
-         E_x = Math.random() < 0.5 ?
-            -30 : 30 + canvas.width;
-         E_y = Math.random() * canvas.height
-      } else {
-         E_x = Math.random() * canvas.width
-         E_y = Math.random() < 0.5 ?
-            -30 : 30 + canvas.height;
-      }
-      let color = `hsl(${Math.random() * 360},50%,50%)`
+   if (Math.random() < 0.5) {
+      E_x = Math.random() < 0.5 ?
+         -30 : 30 + canvas.width;
+      E_y = Math.random() * canvas.height
+   } else {
+      E_x = Math.random() * canvas.width
+      E_y = Math.random() < 0.5 ?
+         -30 : 30 + canvas.height;
+   }
+   let color = `hsl(${Math.random() * 360},50%,50%)`
 
 
-      let angle = Math.atan2(E_y - y, E_x - x)
-      enemies.push(new Enemy(E_x, E_y, radius, color, {
-         x: -Math.cos(angle),
-         y: -Math.sin(angle)
-      }))
-   }, 1000)
+   let angle = Math.atan2(E_y - y, E_x - x)
+   enemies.push(new Enemy(E_x, E_y, radius, color, {
+      x: -Math.cos(angle),
+      y: -Math.sin(angle)
+   }))
 
+}
+
+let spawnTime
+
+function startEnemy() {
+   spawnTime = setInterval(function () {
+      spawnEnemies()
+   }, 1000);
+}
+
+function stopEnemy() {
+   clearInterval(spawnTime)
 }
 
 let animationId
@@ -186,8 +204,12 @@ function animate() {
       enemy.updata()
 
       let dist = Math.hypot(player.x - enemy.x, player.y - enemy.y)
+      // gameover
       if (dist - enemy.radius - player.radius < 1) {
          cancelAnimationFrame(animationId)
+         stopEnemy()
+         pop.style.display = "flex"
+         scoreRep.innerHTML = score
       }
 
 
@@ -227,8 +249,6 @@ function animate() {
 }
 
 addEventListener("click", (event) => {
-   console.log(projectiles)
-   console.log(enemies)
    let angle = Math.atan2(event.clientY - y, event.clientX - x)
    projectiles.push(new Projectile(x, y, 5, "red", {
       x: 5 * Math.cos(angle),
@@ -236,5 +256,12 @@ addEventListener("click", (event) => {
    }))
 })
 
-animate()
-spawnEnemies()
+restart.addEventListener("click", () => {
+   init()
+   startEnemy()
+   animate()
+
+   pop.style.display = "none"
+   score = 0
+   scoreNum.innerHTML = 0
+})
